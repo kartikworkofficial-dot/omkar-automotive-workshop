@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidBooking(data) {
+      return data.firstName is string && data.firstName.size() < 100 &&
+             data.lastName is string && data.lastName.size() < 100 &&
+             data.email is string && data.email.size() < 100 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidMessage(data) {
+      return data.firstName is string && data.firstName.size() < 100 &&
+             data.lastName is string && data.lastName.size() < 100 &&
+             data.email is string && data.email.size() < 100 &&
+             data.message is string && data.message.size() < 5000 &&
+             data.createdAt is timestamp;
+    }
+
+    match /bookings/{bookingId} {
+      allow read, update, delete: if false;
+      allow create: if isValidBooking(request.resource.data);
+    }
+
+    match /messages/{messageId} {
+      allow read, update, delete: if false;
+      allow create: if isValidMessage(request.resource.data);
+    }
+  }
+}
+

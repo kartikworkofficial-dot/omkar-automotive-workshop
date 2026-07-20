@@ -1,0 +1,161 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application, potentially an admin.",
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user"],
+          "description": "The role of the user."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The email address of the user."
+        }
+      },
+      "required": ["role", "email"]
+    },
+    "BlogPost": {
+      "title": "BlogPost",
+      "description": "A blog post created by an admin.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the blog post."
+        },
+        "excerpt": {
+          "type": "string",
+          "description": "A short summary of the blog post."
+        },
+        "content": {
+          "type": "string",
+          "description": "The full content of the blog post (markdown)."
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL of the featured image."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The last update timestamp."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "The UID of the admin who created the post."
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Whether the post is published and visible to the public."
+        }
+      },
+      "required": ["title", "content", "createdAt", "updatedAt", "authorId", "published"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "A product category.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the category."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The creation timestamp."
+        }
+      },
+      "required": ["name", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A product available in the store.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the product."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description."
+        },
+        "longDescription": {
+          "type": "string",
+          "description": "A detailed description."
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of the product."
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "The ID of the category."
+        },
+        "image": {
+          "type": "string",
+          "format": "uri",
+          "description": "The main image URL."
+        },
+        "images": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array of image URLs."
+        },
+        "features": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array of features."
+        },
+        "specifications": {
+          "type": "object",
+          "description": "Key-value pairs of specifications."
+        },
+        "inStock": {
+          "type": "boolean",
+          "description": "Availability status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The last update timestamp."
+        }
+      },
+      "required": ["name", "description", "longDescription", "price", "categoryId", "image", "images", "features", "specifications", "inStock", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles and roles."
+    },
+    "/blogs/{blogId}": {
+      "schema": { "$ref": "#/entities/BlogPost" },
+      "description": "Stores blog posts."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Stores product categories."
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Stores products."
+    }
+  }
+}

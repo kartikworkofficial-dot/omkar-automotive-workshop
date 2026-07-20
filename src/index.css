@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-primary: #1E3A8A; /* Dark Blue */
+  --color-primary-dark: #1E40AF;
+  --color-secondary: #F97316; /* Orange Accent */
+  --color-secondary-dark: #EA580C;
+  
+  --color-dark: #334155; /* Steel Grey */
+  --color-darker: #0F172A; /* Deep Steel */
+  
+  --color-light: #F8FAFC; /* Light Grey / Soft Industrial */
+  --color-lighter: #FFFFFF; /* Off White */
+  
+  --color-metallic: #64748B; /* Metallic Grey */
+  --color-steel: #94A3B8;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-light text-darker font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight text-darker;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Animations */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+.hover\:pause-animation:hover {
+  animation-play-state: paused;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-light;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-metallic rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary;
+}
+
