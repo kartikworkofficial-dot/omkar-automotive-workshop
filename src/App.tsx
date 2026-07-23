@@ -7,6 +7,7 @@ import { ServicesPage } from "@/src/pages/ServicesPage";
 import { Gallery } from "@/src/pages/Gallery";
 import { TestimonialsPage } from "@/src/pages/TestimonialsPage";
 import { Contact } from "@/src/pages/Contact";
+import { Estimator } from "@/src/pages/Estimator";
 import { Chatbot } from "@/src/components/Chatbot";
 import { BookingModal } from "@/src/components/BookingModal";
 import { useState, useEffect } from "react";
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/testimonials" element={<TestimonialsPage />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/estimator" element={<Estimator />} />
           </Routes>
         </div>
         <Footer />

@@ -11,7 +11,7 @@ const carBrands = [
   { name: "Porsche", logo: "https://images.seeklogo.com/logo-png/39/2/porsche-logo-png_seeklogo-399884.png" },
   { name: "MINI", logo: "https://www.motoringresearch.com/wp-content/uploads/2017/12/Mini_logo_2001.jpg" },
   { name: "Jeep", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1xJ-ymqeSx1b7ClV_NC7wYtkiUbwjGw4YHg&s" },
-  { name: "Isuzu", logo: "https://lezebre.lu/images/detailed/17/30319-Isuzu.png" },
+  { name: "Isuzu", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Isuzu_logo.svg/512px-Isuzu_logo.svg.png" },
   { name: "Maruti Suzuki", logo: "https://static.vecteezy.com/system/resources/previews/020/336/714/non_2x/maruti-suzuki-logo-maruiti-icon-free-free-vector.jpg" },
   { name: "Tata Motors", logo: "https://listcarbrands.com/wp-content/uploads/2017/10/2017-logo-Tata-Motors.jpg" },
   { name: "Mahindra", logo: "https://cdn.renderhub.com/3d-logoman/mahindra-new-logo/mahindra-new-logo-02.jpg" },

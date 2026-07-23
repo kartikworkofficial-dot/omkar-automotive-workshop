@@ -24,6 +24,7 @@ export function Navbar() {
     { name: "Gallery", path: "/gallery" },
     { name: "Testimonials", path: "/testimonials" },
     { name: "Contact", path: "/contact" },
+    { name: "AI Estimator", path: "/estimator" },
   ];
 
   return (
