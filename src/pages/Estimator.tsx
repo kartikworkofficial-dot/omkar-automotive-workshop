@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { EstimatorForm } from "@/src/components/estimator/EstimatorForm";
 import { EstimatorResult, EstimateData } from "@/src/components/estimator/EstimatorResult";
+import { generateClientEstimate } from "@/src/lib/estimator-engine";
 import { Bot, Sparkles, ShieldCheck, Zap, AlertCircle } from "lucide-react";
 
 export function Estimator() {
@@ -12,21 +13,11 @@ export function Estimator() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/estimate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch estimate");
-      }
-
-      const data = await response.json();
+      const data = await generateClientEstimate(formData);
       setEstimate(data);
     } catch (err) {
       console.error(err);
-      setError("An error occurred while generating the estimate. Please check your network connection and try again.");
+      setError("An error occurred while generating the estimate. Please try again.");
     } finally {
       setIsLoading(false);
     }
