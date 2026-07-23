@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, X, Send, Loader2, Bot, User, Phone, Calendar, Clock, MapPin, ChevronRight, Minimize2 } from "lucide-react";
+import { MessageSquare, X, Send, Loader2, Bot, User, Calendar, Clock, MapPin, ChevronRight, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { GoogleGenAI } from "@google/genai";
 
 const QUICK_REPLIES = [
   { label: "Book a Service", icon: Calendar, action: "I want to book a service" },
@@ -8,6 +9,41 @@ const QUICK_REPLIES = [
   { label: "Working Hours", icon: Clock, action: "What are your working hours?" },
   { label: "Location", icon: MapPin, action: "Where are you located?" },
 ];
+
+// Offline fallback response generator for common customer inquiries
+function getOfflineChatFallback(userMessage: string): string {
+  const msg = (userMessage || "").toLowerCase();
+
+  if (msg.includes("book") || msg.includes("appointment") || msg.includes("schedule") || msg.includes("slot")) {
+    return "To book a service appointment, simply click the 'Book Service' button on the navigation bar, or call us directly at +91 94224 10051!";
+  }
+  if (msg.includes("hour") || msg.includes("time") || msg.includes("open") || msg.includes("timing") || msg.includes("close")) {
+    return "Omkar Automotive Workshop is open Monday to Saturday from 9:00 AM to 7:00 PM. We are closed on Sundays.";
+  }
+  if (msg.includes("location") || msg.includes("where") || msg.includes("address") || msg.includes("map") || msg.includes("sangli")) {
+    return "We are located at 100 Feet Rd, Ekta Chowk, Sangli, Maharashtra. Feel free to visit us or call +91 94224 10051 for directions!";
+  }
+  if (msg.includes("oil") || msg.includes("lubricat")) {
+    return "Our synthetic engine oil change package includes premium oil replacement, oil filter check, and multi-point vehicle inspection starting at ₹1,499.";
+  }
+  if (msg.includes("brake") || msg.includes("pad") || msg.includes("disc")) {
+    return "Our brake service covers front & rear brake pad inspection, rotor disc turning, and brake fluid flushing to ensure maximum road safety.";
+  }
+  if (msg.includes("ac") || msg.includes("cool") || msg.includes("air condition")) {
+    return "Our climate control service includes R134a refrigerant gas top-up, cabin filter replacement, and condenser leak testing starting at ₹1,299.";
+  }
+  if (msg.includes("dent") || msg.includes("paint") || msg.includes("scratch")) {
+    return "We provide expert computerized color-matched denting & booth painting services for scratch repairs and body restoration.";
+  }
+  if (msg.includes("price") || msg.includes("cost") || msg.includes("charge") || msg.includes("rate") || msg.includes("estimate")) {
+    return "Our pricing is transparent! Basic servicing starts at ₹1,499, AC service at ₹1,299, and full multi-point maintenance at ₹2,999. Try our 'AI Estimator' page for an instant detailed quote!";
+  }
+  if (msg.includes("service") || msg.includes("offer") || msg.includes("repair") || msg.includes("do you do")) {
+    return "We offer comprehensive car & bike care: Engine Overhaul, Oil Change, Denting & Painting, AC Gas Refill, Brake Repair, Suspension Tuning, and Foam Washing!";
+  }
+
+  return "Thank you for reaching out to Omkar Automotive Workshop! We offer complete vehicle servicing, engine diagnostics, denting/painting, and AC repairs. How can we assist you today? Click 'Book Service' to schedule your visit!";
+}
 
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,21 +74,56 @@ export function Chatbot() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage, history: messages })
-      });
+      const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
+      const processKey = typeof process !== "undefined" && process.env ? process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY : "";
+      const apiKey = envKey || processKey || "";
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey.trim() === "") {
+        const fallbackText = getOfflineChatFallback(userMessage);
+        setMessages((prev) => [...prev, { role: "model", text: fallbackText }]);
+        setIsLoading(false);
+        return;
       }
 
-      const data = await response.json();
-      setMessages((prev) => [...prev, { role: "model", text: data.text || "I'm sorry, I couldn't process that." }]);
+      const ai = new GoogleGenAI({ apiKey });
+
+      const systemInstruction = `You are an intelligent, helpful, and professional customer support chatbot for "Omkar Automotive Workshop" in Sangli, Maharashtra, India.
+
+Your role is to assist users with:
+1. Answering questions about our services: Oil Change, Denting & Painting, AC Service & Gas Refill, Brake Repair, Engine Diagnostics, Washing & Detailing.
+2. Providing estimated pricing based on services.
+3. Guiding users on how to book an appointment (tell them to click the "Book Service" button or call +91 94224 10051).
+4. Explaining our working hours (Monday to Saturday, 9:00 AM to 7:00 PM).
+5. Providing workshop location (100 Feet Rd, Ekta Chowk, Sangli).
+
+Important Formatting Rules:
+- Keep responses concise, clean, and friendly.
+- Do NOT use markdown bold stars (*) or hashes (#).
+- Respond in natural, helpful conversational text as a human service advisor.`;
+
+      const formattedHistory = messages.map((msg) => ({
+        role: msg.role === "user" ? "user" : "model",
+        parts: [{ text: msg.text }]
+      }));
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          ...formattedHistory,
+          { role: "user", parts: [{ text: userMessage }] }
+        ],
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+        }
+      });
+
+      const responseText = response.text || getOfflineChatFallback(userMessage);
+      setMessages((prev) => [...prev, { role: "model", text: responseText }]);
     } catch (error) {
-      console.error("Chatbot error:", error);
-      setMessages((prev) => [...prev, { role: "model", text: "I'm sorry, I'm having trouble connecting right now. Please call us at +91 94224 10051 for immediate assistance." }]);
+      console.error("Client-side chatbot error, using offline fallback:", error);
+      const fallbackText = getOfflineChatFallback(userMessage);
+      setMessages((prev) => [...prev, { role: "model", text: fallbackText }]);
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +139,7 @@ export function Chatbot() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => { setIsOpen(true); setIsMinimized(false); }}
-          className="fixed bottom-6 right-6 w-16 h-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 group"
+          className="fixed bottom-6 right-6 w-16 h-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 group cursor-pointer"
         >
           <MessageSquare className="w-7 h-7 group-hover:rotate-12 transition-transform" />
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full border-2 border-white animate-pulse" />
@@ -108,13 +179,13 @@ export function Chatbot() {
               <div className="flex items-center gap-1">
                 <button 
                   onClick={(e) => { e.stopPropagation(); setIsMinimized(!isMinimized); }} 
-                  className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
                 >
                   {isMinimized ? <ChevronRight className="w-5 h-5 -rotate-90" /> : <Minimize2 className="w-4 h-4" />}
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} 
-                  className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -168,7 +239,7 @@ export function Chatbot() {
                       <button
                         key={reply.label}
                         onClick={() => handleSend(reply.action)}
-                        className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 bg-light hover:bg-steel/10 border border-steel/10 rounded-full text-xs font-semibold text-darker transition-colors"
+                        className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 bg-light hover:bg-steel/10 border border-steel/10 rounded-full text-xs font-semibold text-darker transition-colors cursor-pointer"
                       >
                         <reply.icon className="w-3.5 h-3.5 text-secondary" />
                         {reply.label}
@@ -195,7 +266,7 @@ export function Chatbot() {
                     <button 
                       type="submit"
                       disabled={!input.trim() || isLoading}
-                      className="w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 active:scale-95"
+                      className="w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 active:scale-95 cursor-pointer"
                     >
                       <Send className="w-5 h-5" />
                     </button>
